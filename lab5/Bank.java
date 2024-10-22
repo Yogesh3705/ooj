@@ -5,12 +5,14 @@ class Account {
     String customerName;
     String accountNumber;
     double balance;
+    String accountType;
 
     // Constructor to initialize customer details
-    Account(String customerName, String accountNumber, double balance) {
+    Account(String customerName, String accountNumber, double balance, String accountType) {
         this.customerName = customerName;
         this.accountNumber = accountNumber;
         this.balance = balance;
+        this.accountType = accountType;
     }
 
     // Method to display balance
@@ -29,17 +31,17 @@ class Account {
 
     // Method for withdrawal (to be overridden by subclasses)
     void withdraw(double amount) {
-        // This will be defined in subclasses for specific account types
+        // To be implemented in the specific account type classes
     }
 }
 
-// Class for savings account that derives from Account
+// Class for Savings Account that derives from Account
 class SavAcct extends Account {
-    private final double interestRate = 0.04; // 4% annual interest rate
+    private final double interestRate = 0.05; // 5% annual interest rate
 
     // Constructor for SavAcct
     SavAcct(String customerName, String accountNumber, double balance) {
-        super(customerName, accountNumber, balance);
+        super(customerName, accountNumber, balance, "Savings");
     }
 
     // Method to compute and deposit interest
@@ -64,14 +66,14 @@ class SavAcct extends Account {
     }
 }
 
-// Class for current account that derives from Account
+// Class for Current Account that derives from Account
 class CurAcct extends Account {
     private final double minBalance = 500.0; // Minimum balance required
-    private final double serviceCharge = 50.0; // Service charge for falling below minimum balance
+    private final double serviceCharge = 50.0; // Service charge if balance falls below minimum
 
     // Constructor for CurAcct
     CurAcct(String customerName, String accountNumber, double balance) {
-        super(customerName, accountNumber, balance);
+        super(customerName, accountNumber, balance, "Current");
     }
 
     // Override withdrawal method with penalty for falling below minimum balance
@@ -96,25 +98,73 @@ public class Bank {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
 
-        // Create Savings Account
-        SavAcct savAccount = new SavAcct("Alice", "SAV12345", 1000);
-        savAccount.displayBalance();
-        System.out.println("\n---Deposit to Savings Account---");
-        savAccount.deposit(500);
-        System.out.println("\n---Withdraw from Savings Account---");
-        savAccount.withdraw(200);
-        System.out.println("\n---Compute and Deposit Interest in Savings Account---");
-        savAccount.computeAndDepositInterest();
+        System.out.println("Welcome to the Bank Account Management System!");
 
-        // Create Current Account
-        CurAcct curAccount = new CurAcct("Bob", "CUR67890", 1000);
-        curAccount.displayBalance();
-        System.out.println("\n---Deposit to Current Account---");
-        curAccount.deposit(500);
-        System.out.println("\n---Withdraw from Current Account---");
-        curAccount.withdraw(1600); // This will impose service charge due to low balance
-        curAccount.displayBalance();
+        // Get user input for account type
+        System.out.print("Enter Account Type (Savings/Current): ");
+        String accountType = sc.nextLine().toLowerCase();
 
-        sc.close();
+        // Get common customer details
+        System.out.print("Enter Customer Name: ");
+        String customerName = sc.nextLine();
+        System.out.print("Enter Account Number: ");
+        String accountNumber = sc.nextLine();
+        System.out.print("Enter Initial Balance: ");
+        double initialBalance = sc.nextDouble();
+
+        Account account;
+
+        // Create either a Savings or Current account based on input
+        if (accountType.equals("savings")) {
+            account = new SavAcct(customerName, accountNumber, initialBalance);
+        } else if (accountType.equals("current")) {
+            account = new CurAcct(customerName, accountNumber, initialBalance);
+        } else {
+            System.out.println("Invalid account type entered.");
+            return;
+        }
+
+        // Menu to perform operations
+        while (true) {
+            System.out.println("\nChoose an operation:");
+            System.out.println("1. Deposit");
+            System.out.println("2. Withdraw");
+            System.out.println("3. Display Balance");
+            if (account instanceof SavAcct) {
+                System.out.println("4. Compute Interest (Savings only)");
+            }
+            System.out.println("5. Exit");
+            int choice = sc.nextInt();
+
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter deposit amount: ");
+                    double depositAmount = sc.nextDouble();
+                    account.deposit(depositAmount);
+                    break;
+                case 2:
+                    System.out.print("Enter withdrawal amount: ");
+                    double withdrawalAmount = sc.nextDouble();
+                    account.withdraw(withdrawalAmount);
+                    break;
+                case 3:
+                    account.displayBalance();
+                    break;
+                case 4:
+                    if (account instanceof SavAcct) {
+                        ((SavAcct) account).computeAndDepositInterest();
+                    } else {
+                        System.out.println("Interest computation is only available for Savings accounts.");
+                    }
+                    break;
+                case 5:
+                    System.out.println("Thank you for using the Bank Account Management System!");
+                    sc.close();
+                    return;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
     }
 }
+
